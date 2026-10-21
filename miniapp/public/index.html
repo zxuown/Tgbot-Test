@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Фокус — AI-органайзер</title>
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="/src/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="user-info">
+        <div class="avatar" id="user-avatar">🎯</div>
+        <div>
+          <h1 id="user-name">Фокус</h1>
+          <span class="user-role" id="user-role">Продуктивный день</span>
+        </div>
+      </div>
+      <div class="tier-badge" id="tier-badge">FREE</div>
+    </header>
+
+    <!-- Main Content Tabs -->
+    <main class="app-content">
+      <!-- 1. TAB: TODAY -->
+      <section id="tab-today" class="tab-pane active">
+        <div class="card focus-card">
+          <div class="card-label">🎯 ГЛАВНЫЙ ФОКУС ДНЯ</div>
+          <p id="main-focus-text">Завершить ключевые задачи и сохранить баланс энергии.</p>
+        </div>
+
+        <div class="quick-stats-row">
+          <div class="stat-box">
+            <span class="stat-val" id="today-tasks-count">0/0</span>
+            <span class="stat-lbl">Задачи</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-val" id="today-focus-mins">0 мин</span>
+            <span class="stat-lbl">В фокусе</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-val" id="today-habits-count">0</span>
+            <span class="stat-lbl">Привычки</span>
+          </div>
+        </div>
+
+        <div class="section-title">
+          <h2>Задачи на сегодня</h2>
+          <button class="btn-text" onclick="switchTab('tasks')">Все</button>
+        </div>
+        <div id="today-tasks-list" class="task-list">
+          <div class="empty-state">Загрузка задач...</div>
+        </div>
+
+        <div class="section-title" style="margin-top: 20px;">
+          <h2>Привычки</h2>
+        </div>
+        <div id="today-habits-list" class="habit-list">
+          <div class="empty-state">Загрузка привычек...</div>
+        </div>
+      </section>
+
+      <!-- 2. TAB: TASKS -->
+      <section id="tab-tasks" class="tab-pane">
+        <div class="filter-pills">
+          <button class="pill active" onclick="filterTasks('all')">Все</button>
+          <button class="pill" onclick="filterTasks('today')">Сегодня</button>
+          <button class="pill" onclick="filterTasks('high')">Высокий 🔴</button>
+          <button class="pill" onclick="filterTasks('completed')">Выполненные ✅</button>
+        </div>
+
+        <div class="add-task-bar">
+          <input type="text" id="new-task-input" placeholder="Новая задача или мысль..." />
+          <button class="btn-primary" onclick="quickCreateTask()">➕</button>
+        </div>
+
+        <div id="all-tasks-list" class="task-list">
+          <div class="empty-state">Загрузка...</div>
+        </div>
+      </section>
+
+      <!-- 3. TAB: HABITS -->
+      <section id="tab-habits" class="tab-pane">
+        <div class="section-title">
+          <h2>Твои привычки</h2>
+          <button class="btn-primary-sm" onclick="showAddHabitModal()">➕ Добавить</button>
+        </div>
+        <div id="all-habits-list" class="habit-list">
+          <div class="empty-state">Загрузка...</div>
+        </div>
+      </section>
+
+      <!-- 4. TAB: STATS -->
+      <section id="tab-stats" class="tab-pane">
+        <div class="stats-grid">
+          <div class="card stat-card">
+            <div class="stat-card-num" id="stats-tasks-completed">0</div>
+            <div class="stat-card-desc">Задач выполнено</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-card-num" id="stats-focus-total">0 ч</div>
+            <div class="stat-card-desc">В глубоком фокусе</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-card-num" id="stats-habits-week">0</div>
+            <div class="stat-card-desc">Привычек за неделю</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-card-num" id="stats-overdue-count">0</div>
+            <div class="stat-card-desc">Просроченных</div>
+          </div>
+        </div>
+
+        <div class="card ai-card">
+          <div class="card-label">🤖 AI-РЕКОМЕНДАЦИЯ</div>
+          <p id="ai-recommendation-text">Ты наиболее продуктивен в утренние часы. Запланируй главную задачу до 12:00!</p>
+        </div>
+      </section>
+
+      <!-- 5. TAB: SETTINGS -->
+      <section id="tab-settings" class="tab-pane">
+        <div class="card settings-card">
+          <h3>Профиль и дайджесты</h3>
+          <div class="setting-row">
+            <span>Часовой пояс</span>
+            <span id="set-tz" class="setting-val">Europe/Moscow</span>
+          </div>
+          <div class="setting-row">
+            <span>Утренний дайджест</span>
+            <span id="set-morning" class="setting-val">08:00</span>
+          </div>
+          <div class="setting-row">
+            <span>Вечерний итог</span>
+            <span id="set-evening" class="setting-val">21:00</span>
+          </div>
+          <div class="setting-row">
+            <span>Текущий тариф</span>
+            <span id="set-tier" class="setting-val">FREE</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="app-nav">
+      <button class="nav-item active" onclick="switchTab('today')">
+        <span class="nav-icon">📅</span>
+        <span class="nav-lbl">Сегодня</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('tasks')">
+        <span class="nav-icon">📝</span>
+        <span class="nav-lbl">Задачи</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('habits')">
+        <span class="nav-icon">🔄</span>
+        <span class="nav-lbl">Привычки</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('stats')">
+        <span class="nav-icon">📊</span>
+        <span class="nav-lbl">Статистика</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('settings')">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-lbl">Настройки</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="/src/app.js"></script>
+</body>
+</html>

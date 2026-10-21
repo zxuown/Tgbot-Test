@@ -1,0 +1,11 @@
+{
+  "name": "focus-miniapp",
+  "version": "1.0.0",
+  "description": "Telegram Mini App for Focus Organizer",
+  "scripts": {
+    "start": "python -m http.server 3000 --directory public"
+  },
+  "keywords": ["telegram", "mini-app", "productivity"],
+  "author": "Focus Team",
+  "license": "MIT"
+}
